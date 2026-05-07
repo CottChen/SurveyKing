@@ -45,12 +45,13 @@ bootJar {
 }
 
 processResources {
+    filteringCharset = 'UTF-8'
     // exclude resources when build prod
     if (isProd) {
         exclude("application-dev.yml", "generatorConfig.xml")
     }
-    // will replace the ${activeProfile} to activeProfile value in application.yml
+    // Only replace Maven-style @activeProfile@ and keep Spring placeholders intact.
     filesMatching('application.yml') {
-        expand(project.properties)
+        filter { line -> line.replace('@activeProfile@', activeProfile) }
     }
 }
