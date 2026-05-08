@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mock 管理</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --line: #d9dde5;
+      --text: #20242c;
+      --muted: #687385;
+      --primary: #1668dc;
+      --primary-dark: #0f4fb0;
+      --danger: #c7352a;
+      --ok: #16843a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    header {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+    }
+    h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 650;
+    }
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 20px 24px 36px;
+    }
+    section {
+      margin-top: 18px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    h2 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 650;
+    }
+    .status {
+      min-height: 22px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .status.error { color: var(--danger); }
+    .status.ok { color: var(--ok); }
+    .toolbar, .form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .toolbar {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      align-items: end;
+    }
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    input, select {
+      width: 100%;
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 6px 9px;
+      color: var(--text);
+      background: #fff;
+      font: inherit;
+    }
+    input:focus, select:focus {
+      border-color: var(--primary);
+      outline: 2px solid rgba(22, 104, 220, 0.12);
+    }
+    button {
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 0 12px;
+      background: #fff;
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+      white-space: nowrap;
+    }
+    button.primary {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #fff;
+    }
+    button.primary:hover { background: var(--primary-dark); }
+    button.danger {
+      border-color: #e7b8b4;
+      color: var(--danger);
+    }
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .switch-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+    }
+    .switch-row input[type="checkbox"] {
+      width: 42px;
+      height: 22px;
+      min-height: 22px;
+      accent-color: var(--primary);
+    }
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 860px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px 10px;
+      text-align: left;
+      vertical-align: middle;
+    }
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      background: #fafbfc;
+    }
+    td .actions { justify-content: flex-start; }
+    .empty {
+      padding: 22px;
+      color: var(--muted);
+      text-align: center;
+    }
+    @media (max-width: 860px) {
+      header { padding: 0 16px; }
+      main { padding: 14px 12px 28px; }
+      .toolbar, .form-grid { grid-template-columns: 1fr; }
+      .section-head { align-items: flex-start; flex-direction: column; }
+      .actions { justify-content: flex-start; flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Mock 管理</h1>
+    <div id="pageStatus" class="status"></div>
+  </header>
+
+  <main>
+    <section>
+      <div class="section-head">
+        <h2>CRM 开关</h2>
+      </div>
+      <div class="switch-row">
+        <label>
+          mockEnabled
+          <select id="crmMockEnabled">
+            <option value="true">启用</option>
+            <option value="false">关闭</option>
+          </select>
+        </label>
+        <label style="flex: 1;">
+          remark
+          <input id="crmRemark" maxlength="512">
+        </label>
+        <button class="primary" id="saveConfigBtn">保存开关</button>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>CRM 客户</h2>
+        <div class="actions">
+          <button id="newCustomerBtn">新建</button>
+          <button id="reloadCustomersBtn">刷新</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <label>projectId<input id="customerProjectFilter"></label>
+        <label>customerName<input id="customerNameFilter"></label>
+        <label>mobile<input id="customerMobileFilter"></label>
+        <label>enabled
+          <select id="customerEnabledFilter">
+            <option value="">全部</option>
+            <option value="true">启用</option>
+            <option value="false">停用</option>
+          </select>
+        </label>
+        <button class="primary" id="searchCustomersBtn">查询</button>
+      </div>
+      <div class="form-grid" id="customerForm">
+        <input type="hidden" id="customerId">
+        <label>projectId<input id="customerProjectId"></label>
+        <label>customerId<input id="customerCustomerId"></label>
+        <label>customerName<input id="customerCustomerName"></label>
+        <label>mobile<input id="customerMobile"></label>
+        <label>credentialNo<input id="customerCredentialNo"></label>
+        <label>customerLevel<input id="customerLevel"></label>
+        <label>productInterest<input id="customerProductInterest"></label>
+        <label>enabled
+          <select id="customerEnabled">
+            <option value="true">启用</option>
+            <option value="false">停用</option>
+          </select>
+        </label>
+        <div class="actions">
+          <button class="primary" id="saveCustomerBtn">保存客户</button>
+          <button id="clearCustomerBtn">清空</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>projectId</th>
+              <th>customerId</th>
+              <th>姓名</th>
+              <th>手机号</th>
+              <th>等级</th>
+              <th>意向</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="customerRows"></tbody>
+        </table>
+      </div>
+      <div id="customerEmpty" class="empty" hidden>暂无数据</div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>CRM 字典</h2>
+        <div class="actions">
+          <button id="newDictBtn">新建</button>
+          <button id="reloadDictsBtn">刷新</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <label>dictCode<input id="dictCodeFilter"></label>
+        <label>label<input id="dictLabelFilter"></label>
+        <label>enabled
+          <select id="dictEnabledFilter">
+            <option value="">全部</option>
+            <option value="true">启用</option>
+            <option value="false">停用</option>
+          </select>
+        </label>
+        <div></div>
+        <button class="primary" id="searchDictsBtn">查询</button>
+      </div>
+      <div class="form-grid" id="dictForm">
+        <input type="hidden" id="dictId">
+        <label>dictCode<input id="dictCode"></label>
+        <label>label<input id="dictLabel"></label>
+        <label>value<input id="dictValue"></label>
+        <label>parentValue<input id="dictParentValue"></label>
+        <label>itemLevel<input id="dictItemLevel" type="number"></label>
+        <label>itemOrder<input id="dictItemOrder" type="number"></label>
+        <label>enabled
+          <select id="dictEnabled">
+            <option value="true">启用</option>
+            <option value="false">停用</option>
+          </select>
+        </label>
+        <div class="actions">
+          <button class="primary" id="saveDictBtn">保存字典</button>
+          <button id="clearDictBtn">清空</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>dictCode</th>
+              <th>label</th>
+              <th>value</th>
+              <th>parentValue</th>
+              <th>level</th>
+              <th>order</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="dictRows"></tbody>
+        </table>
+      </div>
+      <div id="dictEmpty" class="empty" hidden>暂无数据</div>
+    </section>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const state = { customers: [], dicts: [] };
+
+    function setStatus(message, type) {
+      const el = $("pageStatus");
+      el.textContent = message || "";
+      el.className = "status" + (type ? " " + type : "");
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, {
+        credentials: "include",
+        headers: { "content-type": "application/json;charset=utf-8", ...(options.headers || {}) },
+        ...options,
+      });
+      const text = await response.text();
+      const payload = text ? JSON.parse(text) : {};
+      if (payload.code && payload.code !== 200) {
+        throw new Error(payload.message || "请求失败");
+      }
+      return payload.data;
+    }
+
+    function query(params) {
+      return Object.entries(params)
+        .filter(([, value]) => value !== undefined && value !== null && value !== "")
+        .map(([key, value]) => encodeURIComponent(key) + "=" + encodeURIComponent(value))
+        .join("&");
+    }
+
+    function boolValue(id) {
+      const value = $(id).value;
+      return value === "" ? undefined : value === "true";
+    }
+
+    function numberValue(id) {
+      const value = $(id).value;
+      return value === "" ? undefined : Number(value);
+    }
+
+    async function loadConfig() {
+      const configs = await api("/api/mock/config/list");
+      const crm = (configs || []).find((item) => item.integrationCode === "crm") || {};
+      $("crmMockEnabled").value = String(crm.mockEnabled !== false);
+      $("crmRemark").value = crm.remark || "";
+    }
+
+    async function saveConfig() {
+      await api("/api/mock/config/save", {
+        method: "POST",
+        body: JSON.stringify({
+          integrationCode: "crm",
+          mockEnabled: $("crmMockEnabled").value === "true",
+          remark: $("crmRemark").value,
+        }),
+      });
+      setStatus("已保存开关", "ok");
+    }
+
+    async function loadCustomers() {
+      const params = query({
+        projectId: $("customerProjectFilter").value,
+        customerName: $("customerNameFilter").value,
+        mobile: $("customerMobileFilter").value,
+        enabled: boolValue("customerEnabledFilter"),
+        pageSize: 200,
+      });
+      const data = await api("/api/mock/crm/customer/list" + (params ? "?" + params : ""));
+      state.customers = data?.list || [];
+      renderCustomers();
+    }
+
+    function renderCustomers() {
+      $("customerRows").innerHTML = state.customers.map((item, index) => `
+        <tr>
+          <td>${escapeHtml(item.projectId || "")}</td>
+          <td>${escapeHtml(item.customerId || "")}</td>
+          <td>${escapeHtml(item.customerName || "")}</td>
+          <td>${escapeHtml(item.mobile || "")}</td>
+          <td>${escapeHtml(item.customerLevel || "")}</td>
+          <td>${escapeHtml(item.productInterest || "")}</td>
+          <td>${item.enabled ? "启用" : "停用"}</td>
+          <td><div class="actions">
+            <button data-action="edit-customer" data-index="${index}">编辑</button>
+            <button class="danger" data-action="delete-customer" data-index="${index}">删除</button>
+          </div></td>
+        </tr>
+      `).join("");
+      $("customerEmpty").hidden = state.customers.length > 0;
+    }
+
+    function fillCustomer(item = {}) {
+      $("customerId").value = item.id || "";
+      $("customerProjectId").value = item.projectId || "";
+      $("customerCustomerId").value = item.customerId || "";
+      $("customerCustomerName").value = item.customerName || "";
+      $("customerMobile").value = item.mobile || "";
+      $("customerCredentialNo").value = item.credentialNo || "";
+      $("customerLevel").value = item.customerLevel || "";
+      $("customerProductInterest").value = item.productInterest || "";
+      $("customerEnabled").value = String(item.enabled !== false);
+    }
+
+    async function saveCustomer() {
+      await api("/api/mock/crm/customer/save", {
+        method: "POST",
+        body: JSON.stringify({
+          id: $("customerId").value || undefined,
+          projectId: $("customerProjectId").value || undefined,
+          customerId: $("customerCustomerId").value,
+          customerName: $("customerCustomerName").value,
+          mobile: $("customerMobile").value,
+          credentialNo: $("customerCredentialNo").value || undefined,
+          customerLevel: $("customerLevel").value || undefined,
+          productInterest: $("customerProductInterest").value || undefined,
+          enabled: $("customerEnabled").value === "true",
+        }),
+      });
+      fillCustomer();
+      await loadCustomers();
+      setStatus("已保存客户", "ok");
+    }
+
+    async function deleteCustomer(item) {
+      if (!confirm("删除该客户？")) return;
+      await api("/api/mock/crm/customer/delete", {
+        method: "POST",
+        body: JSON.stringify({ id: item.id }),
+      });
+      await loadCustomers();
+      setStatus("已删除客户", "ok");
+    }
+
+    async function loadDicts() {
+      const params = query({
+        dictCode: $("dictCodeFilter").value,
+        label: $("dictLabelFilter").value,
+        enabled: boolValue("dictEnabledFilter"),
+        pageSize: 200,
+      });
+      const data = await api("/api/mock/crm/dict/list" + (params ? "?" + params : ""));
+      state.dicts = data?.list || [];
+      renderDicts();
+    }
+
+    function renderDicts() {
+      $("dictRows").innerHTML = state.dicts.map((item, index) => `
+        <tr>
+          <td>${escapeHtml(item.dictCode || "")}</td>
+          <td>${escapeHtml(item.label || "")}</td>
+          <td>${escapeHtml(item.value || "")}</td>
+          <td>${escapeHtml(item.parentValue || "")}</td>
+          <td>${item.itemLevel ?? ""}</td>
+          <td>${item.itemOrder ?? ""}</td>
+          <td>${item.enabled ? "启用" : "停用"}</td>
+          <td><div class="actions">
+            <button data-action="edit-dict" data-index="${index}">编辑</button>
+            <button class="danger" data-action="delete-dict" data-index="${index}">删除</button>
+          </div></td>
+        </tr>
+      `).join("");
+      $("dictEmpty").hidden = state.dicts.length > 0;
+    }
+
+    function fillDict(item = {}) {
+      $("dictId").value = item.id || "";
+      $("dictCode").value = item.dictCode || "";
+      $("dictLabel").value = item.label || "";
+      $("dictValue").value = item.value || "";
+      $("dictParentValue").value = item.parentValue || "";
+      $("dictItemLevel").value = item.itemLevel ?? "";
+      $("dictItemOrder").value = item.itemOrder ?? "";
+      $("dictEnabled").value = String(item.enabled !== false);
+    }
+
+    async function saveDict() {
+      await api("/api/mock/crm/dict/save", {
+        method: "POST",
+        body: JSON.stringify({
+          id: $("dictId").value || undefined,
+          dictCode: $("dictCode").value,
+          label: $("dictLabel").value,
+          value: $("dictValue").value,
+          parentValue: $("dictParentValue").value || undefined,
+          itemLevel: numberValue("dictItemLevel"),
+          itemOrder: numberValue("dictItemOrder"),
+          enabled: $("dictEnabled").value === "true",
+        }),
+      });
+      fillDict();
+      await loadDicts();
+      setStatus("已保存字典", "ok");
+    }
+
+    async function deleteDict(item) {
+      if (!confirm("删除该字典项？")) return;
+      await api("/api/mock/crm/dict/delete", {
+        method: "POST",
+        body: JSON.stringify({ id: item.id }),
+      });
+      await loadDicts();
+      setStatus("已删除字典项", "ok");
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function bindEvents() {
+      $("saveConfigBtn").addEventListener("click", wrap(saveConfig));
+      $("reloadCustomersBtn").addEventListener("click", wrap(loadCustomers));
+      $("searchCustomersBtn").addEventListener("click", wrap(loadCustomers));
+      $("newCustomerBtn").addEventListener("click", () => fillCustomer());
+      $("saveCustomerBtn").addEventListener("click", wrap(saveCustomer));
+      $("clearCustomerBtn").addEventListener("click", () => fillCustomer());
+      $("reloadDictsBtn").addEventListener("click", wrap(loadDicts));
+      $("searchDictsBtn").addEventListener("click", wrap(loadDicts));
+      $("newDictBtn").addEventListener("click", () => fillDict());
+      $("saveDictBtn").addEventListener("click", wrap(saveDict));
+      $("clearDictBtn").addEventListener("click", () => fillDict());
+      document.addEventListener("click", wrap(async (event) => {
+        const button = event.target.closest("button[data-action]");
+        if (!button) return;
+        const index = Number(button.dataset.index);
+        if (button.dataset.action === "edit-customer") fillCustomer(state.customers[index]);
+        if (button.dataset.action === "delete-customer") await deleteCustomer(state.customers[index]);
+        if (button.dataset.action === "edit-dict") fillDict(state.dicts[index]);
+        if (button.dataset.action === "delete-dict") await deleteDict(state.dicts[index]);
+      }));
+    }
+
+    function wrap(fn) {
+      return async (...args) => {
+        try {
+          setStatus("");
+          await fn(...args);
+        } catch (error) {
+          setStatus(error.message || "操作失败", "error");
+        }
+      };
+    }
+
+    async function init() {
+      bindEvents();
+      fillCustomer();
+      fillDict();
+      await loadConfig();
+      await Promise.all([loadCustomers(), loadDicts()]);
+    }
+
+    init().catch((error) => setStatus(error.message || "加载失败", "error"));
+  </script>
+</body>
+</html>
