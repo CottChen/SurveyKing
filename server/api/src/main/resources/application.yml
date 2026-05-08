@@ -53,6 +53,15 @@ api:
   prefix: /api
 
 surveyking:
+  outbox:
+    consumer:
+      enabled: true
+      fixed-delay-ms: 5000
+      batch-size: 20
+      retry-delay-ms: 60000
+      local-jsonl:
+        enabled: true
+        path: ./.local/surveyking/outbox/survey-answer-events.jsonl
   ai:
     siliconflow:
       enabled: true

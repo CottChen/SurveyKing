@@ -23,6 +23,12 @@ public class SurveyAnswerOutboxEvent extends BaseModel {
 
 	public static final String STATUS_PENDING = "pending";
 
+	public static final String STATUS_PROCESSING = "processing";
+
+	public static final String STATUS_SENT = "sent";
+
+	public static final String STATUS_FAILED = "failed";
+
 	private String eventType;
 
 	private String eventKey;
