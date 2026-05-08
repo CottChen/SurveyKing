@@ -24,6 +24,8 @@ public interface SurveyService {
 
     List<PublicDictView> loadDict(PublicDictRequest request);
 
+    CrmCustomerVerifyView verifyCrmCustomer(CrmCustomerVerifyRequest request);
+
     PublicExamResult loadExamResult(PublicExamRequest request);
 
     void tempSaveAnswer(AnswerRequest request);

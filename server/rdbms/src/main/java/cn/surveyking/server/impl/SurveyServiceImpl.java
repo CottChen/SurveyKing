@@ -9,6 +9,7 @@ import cn.surveyking.server.domain.dto.*;
 import cn.surveyking.server.domain.mapper.ProjectViewMapper;
 import cn.surveyking.server.domain.model.*;
 import cn.surveyking.server.mapper.ProjectPartnerMapper;
+import cn.surveyking.server.service.CrmCustomerAdapter;
 import cn.surveyking.server.service.ProjectService;
 import cn.surveyking.server.service.SurveyService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -65,6 +66,8 @@ public class SurveyServiceImpl implements SurveyService {
     private final AnswerServiceImpl answerService;
 
     private final SurveyAnswerOutboxService surveyAnswerOutboxService;
+
+    private final CrmCustomerAdapter crmCustomerAdapter;
 
     private final ProjectPartnerMapper projectPartnerMapper;
 
@@ -330,6 +333,9 @@ public class SurveyServiceImpl implements SurveyService {
 
     @Override
     public List<PublicDictView> loadDict(PublicDictRequest request) {
+        if (request != null && StringUtils.startsWith(request.getDictCode(), "crm.")) {
+            return crmCustomerAdapter.loadDict(request);
+        }
         return dictItemService
                 .list(Wrappers.<CommDictItem>lambdaQuery().eq(CommDictItem::getDictCode, request.getDictCode())
                         .eq(request.getCascaderLevel() != null, CommDictItem::getItemLevel, request.getCascaderLevel())
@@ -345,6 +351,11 @@ public class SurveyServiceImpl implements SurveyService {
                     view.setValue(x.getItemValue());
                     return view;
                 }).collect(Collectors.toList());
+    }
+
+    @Override
+    public CrmCustomerVerifyView verifyCrmCustomer(CrmCustomerVerifyRequest request) {
+        return crmCustomerAdapter.verifyCustomer(request);
     }
 
     /**

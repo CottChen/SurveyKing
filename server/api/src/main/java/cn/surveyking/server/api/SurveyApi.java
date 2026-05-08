@@ -136,6 +136,16 @@ public class SurveyApi {
 	}
 
 	/**
+	 * CRM 客户实名校验
+	 * @param request
+	 * @return
+	 */
+	@PostMapping("/crm/verifyCustomer")
+	public CrmCustomerVerifyView verifyCrmCustomer(@RequestBody CrmCustomerVerifyRequest request) {
+		return surveyService.verifyCrmCustomer(request);
+	}
+
+	/**
 	 * 加载问卷结果
 	 * @param request
 	 * @return
