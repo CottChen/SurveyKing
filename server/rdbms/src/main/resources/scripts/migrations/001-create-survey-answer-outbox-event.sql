@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS `t_survey_answer_outbox_event` (
+  `id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `event_type` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '事件类型',
+  `event_key` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '事件幂等键',
+  `project_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '问卷项目ID',
+  `answer_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '答卷ID',
+  `status` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT 'pending' COMMENT '事件状态',
+  `retry_count` int NOT NULL DEFAULT '0' COMMENT '重试次数',
+  `next_retry_at` timestamp NULL DEFAULT NULL COMMENT '下次重试时间',
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT '事件载荷',
+  `error_message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT '错误信息',
+  `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否删除',
+  `create_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `create_by` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `update_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `update_by` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE KEY `uk_answer_outbox_event_key` (`event_key`) USING BTREE,
+  KEY `idx_answer_outbox_status_retry` (`status`, `next_retry_at`) USING BTREE,
+  KEY `idx_answer_outbox_answer` (`answer_id`) USING BTREE,
+  KEY `idx_answer_outbox_project` (`project_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='答卷事件outbox';

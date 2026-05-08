@@ -64,6 +64,8 @@ public class SurveyServiceImpl implements SurveyService {
 
     private final AnswerServiceImpl answerService;
 
+    private final SurveyAnswerOutboxService surveyAnswerOutboxService;
+
     private final ProjectPartnerMapper projectPartnerMapper;
 
     private final AuthenticationManager authenticationManager;
@@ -263,6 +265,7 @@ public class SurveyServiceImpl implements SurveyService {
         // 保存答案
         request.setId(answerId);
         AnswerView answerView = answerService.saveAnswer(request);
+        surveyAnswerOutboxService.recordAnswerSubmitted(project, answerView);
         result.setAnswerId(answerView.getId());
         // 考试模式，计算分值传给前端
         if (ProjectModeEnum.exam.equals(project.getMode()) && !ExerciseProjectTemplate.EXERCISE_PROJECT_ID.equals(projectId)) {
