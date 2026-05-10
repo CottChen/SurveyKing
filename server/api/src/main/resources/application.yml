@@ -53,6 +53,14 @@ api:
   prefix: /api
 
 surveyking:
+  analytics:
+    script-dir: ./.local/surveyking/analytics/scripts
+    datasource:
+      # Hologres 兼容 PostgreSQL 协议；本地不配置 url 时会回退到 SurveyKing 主数据源，便于开发验证 API 形状。
+      url: ${HOLOGRES_JDBC_URL:}
+      username: ${HOLOGRES_USERNAME:}
+      password: ${HOLOGRES_PASSWORD:}
+      driver-class-name: org.postgresql.Driver
   outbox:
     consumer:
       enabled: true

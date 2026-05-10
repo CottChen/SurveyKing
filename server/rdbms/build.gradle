@@ -17,6 +17,7 @@ dependencies {
     
 //    implementation 'com.h2database:h2:2.1.214'
     implementation 'mysql:mysql-connector-java:8.0.26'
+    runtimeOnly 'org.postgresql:postgresql:42.7.4'
 }
 
 test {
